@@ -217,6 +217,20 @@ UIActionSheetDelegate>
 - (void)showOrHideNavPrompt
 {
     // Implement me!
+    /*
+     1. You declare the variable that specifies the amount of time to delay.
+     2. You then wait for the amount of time given in the delayInSeconds variable and then asynchronously add the block to the main queue.
+     */
+    NSUInteger count = [[PhotoManager sharedManager] photos].count;
+    double delayInSeconds = 1.0;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)); //1
+    dispatch_after(popTime, dispatch_get_main_queue(), ^{ //2
+        if (!count) {
+            [self.navigationItem setPrompt:@"Add photos with faces to Googlyify them!"];
+        } else {
+            [self.navigationItem setPrompt:nil];
+        }
+    });
 }
 
 - (void)downloadImageAssets
