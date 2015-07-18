@@ -20,7 +20,8 @@ extern NSString *const kPhotoManagerContentUpdateNotification;
 extern NSString *const kLotsOfFacesURLString;
 extern NSString *const kOverlyAttachedGirlfriendURLString;
 extern NSString *const kSuccessKidURLString;
-
+extern NSString *const kBigImageData;
+extern NSString *const kBigImageData2;
 @interface Utils : NSObject
 
 + (UIColor *)defaultBackgroundColor;

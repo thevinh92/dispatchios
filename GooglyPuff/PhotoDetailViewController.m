@@ -38,8 +38,21 @@ const CGFloat kFaceBoundsToEyeScaleFactor = 4.0f;
         [self.photoImageView setContentMode:UIViewContentModeCenter];
     }
     
-    UIImage *overlayImage = [self faceOverlayImageFromImage:_image];
-    [self fadeInNewImage:overlayImage];
+//    UIImage *overlayImage = [self faceOverlayImageFromImage:_image];
+//    [self fadeInNewImage:overlayImage];
+    
+    /*
+     1.You first move the work off of the main thread and onto a global queue. Because this is a dispatch_async(), the block is submitted asynchronously meaning that execution of the calling thread continues. This lets viewDidLoad finish earlier on the main thread and makes the loading feel more snappy. Meanwhile, the face detection processing is started and will finish at some later time.
+     2.At this point, the face detection processing is complete and you’ve generated a new image. Since you want to use this new image to update your UIImageView, you add a new block of work to the main queue. Remember – you must always access UI Kit classes on the main thread!
+     3.Finally, you update the UI with fadeInNewImage: which performs a fade-in transition of the new googly eyes image.
+     */
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ //1
+        UIImage* overlayImage = [self faceOverlayImageFromImage:_image];
+        dispatch_async(dispatch_get_main_queue(), ^{ //2
+            [self fadeInNewImage:overlayImage]; //3
+        });
+    });
+
 }
 
 //*****************************************************************************/

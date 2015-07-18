@@ -13,6 +13,8 @@ NSString *const kPhotoManagerContentUpdateNotification = @"com.selander.GooglyPu
 NSString *const kOverlyAttachedGirlfriendURLString = @"http://i.imgur.com/UvqEgCv.png";
 NSString *const kSuccessKidURLString = @"http://i.imgur.com/dZ5wRtb.png";
 NSString *const kLotsOfFacesURLString = @"http://i.imgur.com/tPzTg7A.jpg";
+NSString *const kBigImageData = @"https://farm1.staticflickr.com/446/19605829790_7b57a331a6_o.jpg";
+NSString *const kBigImageData2 = @"https://farm3.staticflickr.com/2910/14441898391_c8774bd37e_o.jpg";
 
 typedef void (^PhotoDownloadingProgressBlock)(NSUInteger completed, NSUInteger total);
 @implementation Utils

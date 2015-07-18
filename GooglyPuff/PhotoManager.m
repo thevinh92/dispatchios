@@ -53,7 +53,7 @@
 {
     __block NSError *error;
     
-    for (NSInteger i = 0; i < 3; i++) {
+    for (NSInteger i = 0; i < 5; i++) {
         NSURL *url;
         switch (i) {
             case 0:
@@ -64,6 +64,12 @@
                 break;
             case 2:
                 url = [NSURL URLWithString:kLotsOfFacesURLString];
+                break;
+            case 3:
+                url = [NSURL URLWithString:kBigImageData];
+                break;
+            case 4:
+                url = [NSURL URLWithString:kBigImageData2];
                 break;
             default:
                 break;
