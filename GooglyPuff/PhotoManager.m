@@ -18,15 +18,20 @@
 + (instancetype)sharedManager
 {
     static PhotoManager *sharedPhotoManager = nil;
-    if (!sharedPhotoManager) {
-        // you’re forcing a context switch to happen with NSThread’s sleepForTimeInterval:
-        [NSThread sleepForTimeInterval:2];
+//    if (!sharedPhotoManager) {
+//        // you’re forcing a context switch to happen with NSThread’s sleepForTimeInterval:
+//        [NSThread sleepForTimeInterval:2];
+//        sharedPhotoManager = [[PhotoManager alloc] init];
+//        NSLog(@"Single has memory address at: %@", sharedPhotoManager);
+//        [NSThread sleepForTimeInterval:2];
+//        sharedPhotoManager->_photosArray = [NSMutableArray array];
+//    }
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         sharedPhotoManager = [[PhotoManager alloc] init];
         NSLog(@"Single has memory address at: %@", sharedPhotoManager);
-        [NSThread sleepForTimeInterval:2];
         sharedPhotoManager->_photosArray = [NSMutableArray array];
-    }
-
+    });
     return sharedPhotoManager;
 }
 
