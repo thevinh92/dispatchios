@@ -11,6 +11,7 @@
 
 @interface PhotoManager ()
 @property (nonatomic, strong) NSMutableArray *photosArray;
+@property (nonatomic, strong) dispatch_queue_t concurrentPhotoQueue;
 @end
 
 @implementation PhotoManager
@@ -18,19 +19,11 @@
 + (instancetype)sharedManager
 {
     static PhotoManager *sharedPhotoManager = nil;
-//    if (!sharedPhotoManager) {
-//        // you’re forcing a context switch to happen with NSThread’s sleepForTimeInterval:
-//        [NSThread sleepForTimeInterval:2];
-//        sharedPhotoManager = [[PhotoManager alloc] init];
-//        NSLog(@"Single has memory address at: %@", sharedPhotoManager);
-//        [NSThread sleepForTimeInterval:2];
-//        sharedPhotoManager->_photosArray = [NSMutableArray array];
-//    }
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedPhotoManager = [[PhotoManager alloc] init];
-        NSLog(@"Single has memory address at: %@", sharedPhotoManager);
         sharedPhotoManager->_photosArray = [NSMutableArray array];
+        sharedPhotoManager->_concurrentPhotoQueue = dispatch_queue_create("com.selander.GooglyPuff.photoQueue", DISPATCH_QUEUE_CONCURRENT);
     });
     return sharedPhotoManager;
 }
@@ -41,15 +34,25 @@
 
 - (NSArray *)photos
 {
-    return _photosArray;
+    __block NSArray* array; //1
+    dispatch_sync(self.concurrentPhotoQueue, ^{
+        array = [NSArray arrayWithArray:_photosArray];
+    });
+    return array;
 }
 
 - (void)addPhoto:(Photo *)photo
 {
-    if (photo) {
-        [_photosArray addObject:photo];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self postContentAddedNotification];
+    // 1. Check that there’s a valid photo before performing all the following work.
+    // 2. Add the write operation using your custom queue. When the critical section executes at a later time this will be the only item in your queue to execute.
+    // 3. This is the actual code which adds the object to the array. Since it’s a barrier block, this block will never run simultaneously with any other block in concurrentPhotoQueue.
+    // 4. Finally you post a notification that you’ve added the image. This notification should be posted from the main thread because it will do UI work, so here you dispatch another task asynchronously to the main queue for the notification.
+    if (photo) { //1
+        dispatch_barrier_async(self.concurrentPhotoQueue, ^{ //2
+            [_photosArray addObject:photo]; //3
+            dispatch_async(dispatch_get_main_queue(), ^{ //4
+                [self postContentAddedNotification];
+            });
         });
     }
 }

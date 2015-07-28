@@ -79,6 +79,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		962BD3E81B6075FC00B21CA5 /* Marco.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Marco.h; sourceTree = "<group>"; };
 		A6909CC7187E149A002BA91F /* photoDownloadError.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = photoDownloadError.png; sourceTree = "<group>"; };
 		A6909CC8187E149A002BA91F /* photoDownloading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = photoDownloading.png; sourceTree = "<group>"; };
 		A6C6829F185047F800E9F46B /* GooglyPuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GooglyPuff.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -195,6 +196,7 @@
 		A6C682A8185047F800E9F46B /* GooglyPuff */ = {
 			isa = PBXGroup;
 			children = (
+				962BD3E81B6075FC00B21CA5 /* Marco.h */,
 				A6C682EB1850485200E9F46B /* AppDelegate.h */,
 				A6C682EC1850485200E9F46B /* AppDelegate.m */,
 				A6C682ED1850485200E9F46B /* PhotoCollectionViewController.h */,

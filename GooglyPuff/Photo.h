@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "Marco.h"
 @class ALAsset;
 typedef void (^PhotoDownloadingCompletionBlock)(UIImage *image, NSError *error);
 typedef NS_ENUM(NSInteger, PhotoStatus) {

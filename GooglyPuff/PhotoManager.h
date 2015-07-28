@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Photo.h"
+#import "Marco.h"
 
 typedef void (^PhotoProcessingProgressBlock)(CGFloat completionPercentage);
 typedef void (^BatchPhotoDownloadingCompletionBlock)(NSError *error);

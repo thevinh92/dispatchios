@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Marco.h"
 
 @interface PhotoCollectionViewController : UICollectionViewController
 
