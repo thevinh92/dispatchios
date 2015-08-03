@@ -62,19 +62,19 @@
 //*****************************************************************************/
 
 
-//1. Since you’re using the synchronous dispatch_group_wait which blocks the current thread, you use dispatch_async to place the entire method into a background queue to ensure you don’t block the main thread.
-//2. This creates a new dispatch group which behaves somewhat like a counter of the number of uncompleted tasks.
-//3. dispatch_group_enter manually notifies a group that a task has started. You must balance out the number of dispatch_group_enter calls with the number of dispatch_group_leave calls or else you’ll experience some weird crashes.
-//4. Here you manually notify the group that this work is done. Again, you’re balancing all group enters with an equal amount of group leaves.
-//5. dispatch_group_wait waits until either all of the tasks are complete or until the time expires. If the time expires before all events complete, the function will return a non-zero result. You could put this into a conditional block to check if the waiting period expired; however, in this case you specified for it to wait forever by supplying DISPATCH_TIME_FOREVER. This means, unsurprisingly, it’ll wait, forever! That’s fine, because the completion of the photos creation will always complete.
-//6. At this point, you are guaranteed that all image tasks have either completed or timed out. You then make a call back to the main queue to run your completion block. This will append work onto the main thread to be executed at some later time.
-//7. Finally, check if the completion block is nil, and if not, run the completion block.
+//    Here’s how your new asynchronous method works:
+//    1. In this new implementation you don’t need to surround the method in an async call since you’re not blocking the main thread.
+//    2. This is the same enter method; there aren’t any changes here.
+//    3. This is the same leave method; there aren’t any changes here either.
+//    4. dispatch_group_notify serves as the asynchronous completion block. This code executes when there are no more items left in the dispatch group and it’s the completion block’s turn to run. You also specify on which queue to run your completion code, here, the main queue is the one you want.
+//    This approach is much cleaner way to handle this particular job and doesn’t block any threads.
 
 - (void)downloadPhotosWithCompletionBlock:(BatchPhotoDownloadingCompletionBlock)completionBlock
 {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ //1
+        //1
         __block NSError* error;
-        dispatch_group_t downloadGroup = dispatch_group_create(); //2
+        dispatch_group_t downloadGroup = dispatch_group_create();
+    
         for (NSInteger i = 0; i < 5; i++) {
             NSURL *url;
             switch (i) {
@@ -96,22 +96,22 @@
                 default:
                     break;
             }
-            dispatch_group_enter(downloadGroup); //3
+            dispatch_group_enter(downloadGroup); //2
+            
             Photo* photo = [[Photo alloc] initwithURL:url withCompletionBlock:^(UIImage *image, NSError *_error) {
                 if (_error) {
                     error = _error;
                 }
-                dispatch_group_leave(downloadGroup); //4
+                dispatch_group_leave(downloadGroup); //3
             }];
             [[PhotoManager sharedManager] addPhoto:photo];
         }
-        dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER); //5
-        dispatch_async(dispatch_get_main_queue(), ^{
+
+        dispatch_group_notify(downloadGroup,dispatch_get_main_queue(), ^{ //4
             if (completionBlock) {
                 completionBlock(error);
             }
         });
-    });
 }
 
 //*****************************************************************************/
