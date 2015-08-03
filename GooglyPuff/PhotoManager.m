@@ -61,45 +61,57 @@
 #pragma mark - Public Methods
 //*****************************************************************************/
 
+
+//1. Since you’re using the synchronous dispatch_group_wait which blocks the current thread, you use dispatch_async to place the entire method into a background queue to ensure you don’t block the main thread.
+//2. This creates a new dispatch group which behaves somewhat like a counter of the number of uncompleted tasks.
+//3. dispatch_group_enter manually notifies a group that a task has started. You must balance out the number of dispatch_group_enter calls with the number of dispatch_group_leave calls or else you’ll experience some weird crashes.
+//4. Here you manually notify the group that this work is done. Again, you’re balancing all group enters with an equal amount of group leaves.
+//5. dispatch_group_wait waits until either all of the tasks are complete or until the time expires. If the time expires before all events complete, the function will return a non-zero result. You could put this into a conditional block to check if the waiting period expired; however, in this case you specified for it to wait forever by supplying DISPATCH_TIME_FOREVER. This means, unsurprisingly, it’ll wait, forever! That’s fine, because the completion of the photos creation will always complete.
+//6. At this point, you are guaranteed that all image tasks have either completed or timed out. You then make a call back to the main queue to run your completion block. This will append work onto the main thread to be executed at some later time.
+//7. Finally, check if the completion block is nil, and if not, run the completion block.
+
 - (void)downloadPhotosWithCompletionBlock:(BatchPhotoDownloadingCompletionBlock)completionBlock
 {
-    __block NSError *error;
-    
-    for (NSInteger i = 0; i < 5; i++) {
-        NSURL *url;
-        switch (i) {
-            case 0:
-                url = [NSURL URLWithString:kOverlyAttachedGirlfriendURLString];
-                break;
-            case 1:
-                url = [NSURL URLWithString:kSuccessKidURLString];
-                break;
-            case 2:
-                url = [NSURL URLWithString:kLotsOfFacesURLString];
-                break;
-            case 3:
-                url = [NSURL URLWithString:kBigImageData];
-                break;
-            case 4:
-                url = [NSURL URLWithString:kBigImageData2];
-                break;
-            default:
-                break;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ //1
+        __block NSError* error;
+        dispatch_group_t downloadGroup = dispatch_group_create(); //2
+        for (NSInteger i = 0; i < 5; i++) {
+            NSURL *url;
+            switch (i) {
+                case 0:
+                    url = [NSURL URLWithString:kOverlyAttachedGirlfriendURLString];
+                    break;
+                case 1:
+                    url = [NSURL URLWithString:kSuccessKidURLString];
+                    break;
+                case 2:
+                    url = [NSURL URLWithString:kLotsOfFacesURLString];
+                    break;
+                case 3:
+                    url = [NSURL URLWithString:kBigImageData];
+                    break;
+                case 4:
+                    url = [NSURL URLWithString:kBigImageData2];
+                    break;
+                default:
+                    break;
+            }
+            dispatch_group_enter(downloadGroup); //3
+            Photo* photo = [[Photo alloc] initwithURL:url withCompletionBlock:^(UIImage *image, NSError *_error) {
+                if (_error) {
+                    error = _error;
+                }
+                dispatch_group_leave(downloadGroup); //4
+            }];
+            [[PhotoManager sharedManager] addPhoto:photo];
         }
-    
-        Photo *photo = [[Photo alloc] initwithURL:url
-                              withCompletionBlock:^(UIImage *image, NSError *_error) {
-                                  if (_error) {
-                                      error = _error;
-                                  }
-                              }];
-    
-        [[PhotoManager sharedManager] addPhoto:photo];
-    }
-    
-    if (completionBlock) {
-        completionBlock(error);
-    }
+        dispatch_group_wait(downloadGroup, DISPATCH_TIME_FOREVER); //5
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completionBlock) {
+                completionBlock(error);
+            }
+        });
+    });
 }
 
 //*****************************************************************************/
